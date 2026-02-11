@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Manager Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+    --ink: #0f172a;
+    --muted: #5b6473;
+    --brand: #0f766e;
+    --brand-dark: #0b5f59;
+    --bg: #f2f6fa;
+    --card: #ffffff;
+    --stroke: #e2e8f0;
+}
+
+body {
+    background:
+        radial-gradient(700px 300px at 85% -5%, #e3f2f0 0%, transparent 60%),
+        linear-gradient(180deg, #f8fafc, var(--bg));
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--ink);
+}
+
+.sidebar {
+    background: linear-gradient(180deg, #0f1b2d, #0a5a64);
+    min-height: 100vh;
+    color: #e2f3f2;
+    padding-top: 24px;
+}
+.sidebar h4 {
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    color: #e2f3f2;
+    text-decoration: none;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 120ms ease;
+}
+.sidebar a.active, .sidebar a:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.topbar {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    animation: liftIn 600ms ease forwards;
+}
+
+@keyframes liftIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.topbar .pill {
+    background: #e7f6f4;
+    color: var(--brand-dark);
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+
+.card {
+    border-radius: 16px;
+    border: 1px solid var(--stroke);
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08); }
+
+.kpi-title { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.8px; }
+.kpi-value { font-size: 28px; font-weight: 700; }
+
+.section { display: none; }
+.section.active { display: block; }
+
+.table thead th {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--stroke);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+/* SLA TIMER */
+.time-box {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    color: white;
+    display: inline-block;
+    min-width: 110px;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+.time-green { background: #16a34a; }
+.time-yellow { background: #facc15; color: #1f2937; }
+.time-red { background: #ef4444; }
+</style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+<div class="row">
+
+<!-- SIDEBAR -->
+<div class="col-md-2 sidebar p-4">
+    <h4 class="mb-4">SLA Dashboard</h4>
+    <a class="active" onclick="showSection('dashboard',this)"><i class="bi bi-grid"></i> Dashboard</a>
+    <a onclick="showSection('analytics',this)"><i class="bi bi-bar-chart"></i> Analytics</a>
+    <a onclick="showSection('alerts',this)"><i class="bi bi-bell"></i> Alerts</a>
+    <a href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+</div>
+
+<!-- MAIN -->
+<div class="col-md-10 p-4">
+
+<div class="topbar mb-4">
+    <div>
+        <h3 class="mb-1">Manager Dashboard</h3>
+        <div class="text-muted">Real-time SLA monitoring and operational visibility.</div>
+    </div>
+    <div class="pill"><i class="bi bi-shield-check me-1"></i> Compliance Live</div>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboard" class="section active">
+
+<!-- KPI CARDS -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow p-3 text-center" onclick="filterTable('MET')">
+            <div class="kpi-title">SLA Met</div>
+            <div class="kpi-value text-success">{{ sla_met }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow p-3 text-center" onclick="filterTable('BREACHED')">
+            <div class="kpi-title">SLA Breached</div>
+            <div class="kpi-value text-danger">{{ sla_breached }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow p-3 text-center" onclick="filterTable('OPEN')">
+            <div class="kpi-title">Open Tickets</div>
+            <div class="kpi-value text-primary">{{ open_tickets }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow p-3 text-center" onclick="filterTable('ALL')">
+            <div class="kpi-title">All Tickets</div>
+            <div class="kpi-value">{{ total_tickets }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="card shadow p-3">
+<h6 class="mb-2">Ticket Details</h6>
+<div class="text-muted mb-3">Live SLA countdown and alert indicators.</div>
+
+<button class="btn btn-outline-secondary mb-3" onclick="filterTable('ALL')">
+    View All Tickets
+</button>
+
+<table class="table table-striped">
+<thead>
+<tr>
+<th>ID</th>
+<th>Title</th>
+<th>Status</th>
+<th>SLA Status</th>
+<th>Time Left</th>
+<th>Alert</th>
+</tr>
+</thead>
+<tbody>
+{% for t in tickets %}
+<tr class="ticket-row"
+    data-status="{{ t.status }}"
+    data-sla="{{ t.sla_status }}">
+<td>{{ t.id }}</td>
+<td>{{ t.title }}</td>
+<td>{{ t.status }}</td>
+<td>{{ t.sla_status }}</td>
+
+<td>
+<span class="time-box"
+      data-created="{{ t.created_time }}"
+      data-sla-hours="{{ t.sla_hours }}">
+</span>
+</td>
+
+<td>{{ t.alert }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- ================= ANALYTICS ================= -->
+<div id="analytics" class="section">
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow p-3">
+            <h6>SLA Compliance</h6>
+            <canvas id="slaChart"></canvas>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow p-3">
+            <h6>Open vs Closed Tickets</h6>
+            <canvas id="ticketChart"></canvas>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ================= ALERTS ================= -->
+<div id="alerts" class="section">
+<div class="card shadow p-3">
+<h6>Alert History</h6>
+
+<table class="table table-bordered">
+<tr>
+<th>Ticket ID</th>
+<th>Title</th>
+<th>Alert Type</th>
+<th>Alert Time</th>
+<th>Current Status</th>
+</tr>
+
+{% for a in alerts %}
+<tr>
+<td>{{ a.ticket_id }}</td>
+<td>{{ a.title }}</td>
+<td>
+{% if a.alert_type == "BREACH" %}
+<span class="badge bg-danger">BREACH</span>
+{% else %}
+<span class="badge bg-warning text-dark">WARNING</span>
+{% endif %}
+</td>
+<td>{{ a.alert_time }}</td>
+<td>{{ a.status }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+<script>
+const slaMet = {{ sla_met | tojson }};
+const slaBreached = {{ sla_breached | tojson }};
+const openTickets = {{ open_tickets | tojson }};
+const closedTickets = {{ closed_tickets | tojson }};
+
+function showSection(id, el){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    document.querySelectorAll('.sidebar a').forEach(a=>a.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function filterTable(type){
+    document.querySelectorAll('.ticket-row').forEach(row=>{
+        row.style.display="table-row";
+        if(type==="OPEN" && row.dataset.status!=="OPEN") row.style.display="none";
+        if(type==="MET" && row.dataset.sla!=="MET") row.style.display="none";
+        if(type==="BREACHED" && row.dataset.sla!=="BREACHED") row.style.display="none";
+    });
+}
+
+/* SLA TIMER */
+function updateSLATimers(){
+    const now = new Date();
+    document.querySelectorAll(".time-box").forEach(box=>{
+        const created = new Date(box.dataset.created.replace(" ","T"));
+        const slaHrs = parseFloat(box.dataset.slaHours);
+        const total = slaHrs * 3600000;
+        const remaining = total - (now - created);
+
+        if(remaining <= 0){
+            box.textContent="00:00:00";
+            box.className="time-box time-red";
+            return;
+        }
+
+        const pct = remaining / total;
+        let cls="time-green";
+        if(pct<=0.25) cls="time-yellow";
+
+        const h=Math.floor(remaining/3600000);
+        const m=Math.floor((remaining%3600000)/60000);
+        const s=Math.floor((remaining%60000)/1000);
+
+        box.textContent=
+            String(h).padStart(2,'0')+":"+
+            String(m).padStart(2,'0')+":"+
+            String(s).padStart(2,'0');
+
+        box.className="time-box "+cls;
+    });
+}
+setInterval(updateSLATimers,1000);
+updateSLATimers();
+
+/* CHARTS */
+new Chart(document.getElementById('slaChart'),{
+ type:'doughnut',
+ data:{
+  labels:['SLA Met','SLA Breached'],
+  datasets:[{
+    label:'SLA Status',
+    data:[slaMet,slaBreached],
+    backgroundColor:['#16a34a','#ef4444']
+  }]
+ }
+});
+
+new Chart(document.getElementById('ticketChart'),{
+ type:'bar',
+ data:{
+  labels:['Tickets'],
+  datasets:[
+    {
+      label:'Open Tickets',
+      data:[openTickets],
+      backgroundColor:'#0ea5e9'
+    },
+    {
+      label:'Closed Tickets',
+      data:[closedTickets],
+      backgroundColor:'#94a3b8'
+    }
+  ]
+ },
+ options:{
+  scales:{ y:{ beginAtZero:true } },
+  plugins:{ legend:{ display:true } }
+ }
+});
+</script>
+
+</body>
+</html>
