@@ -121,6 +121,29 @@ User / Support / Manager
 
 ---
 
+## Project Structure
+
+📁 Digital_SLA_Dashboard  
+├── 📁 static/  
+│   └── (CSS, JS, assets)  
+│  
+├── 📁 templates/  
+│   ├── 📄 login.html  
+│   ├── 📄 user_dashboard.html  
+│   ├── 📄 support_dashboard.html  
+│   └── 📄 manager_dashboard.html  
+│  
+├── 📄 app.py  
+├── 📄 init_db.py  
+├── 📄 insert_users.py  
+├── 📄 reset_database.py  
+├── 📄 database.db  
+├── 📄 README.md  
+└── 📄 .gitignore
+Note: The database file (database.db) is generated automatically during execution and is ignored in version control.
+
+---
+
 ## Installation and Execution Steps
 
 ### Step 1: Clone the Repository
@@ -160,6 +183,7 @@ The following sample credentials are provided for demonstration and testing purp
 To clear all ticket and alert data:
 
 python reset_database.py
+
 
 
 
