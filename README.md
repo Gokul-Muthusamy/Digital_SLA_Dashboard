@@ -140,6 +140,8 @@ User / Support / Manager
 ├── 📄 database.db  
 ├── 📄 README.md  
 └── 📄 .gitignore
+
+
 Note: The database file (database.db) is generated automatically during execution and is ignored in version control.
 
 ---
@@ -183,6 +185,7 @@ The following sample credentials are provided for demonstration and testing purp
 To clear all ticket and alert data:
 
 python reset_database.py
+
 
 
 
