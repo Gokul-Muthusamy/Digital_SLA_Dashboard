@@ -1,0 +1,310 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User Dashboard</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --ink: #0f172a;
+    --muted: #5b6473;
+    --brand: #0f766e;
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --stroke: #e2e8f0;
+}
+
+body {
+    background:
+        radial-gradient(700px 300px at 90% -10%, #e8f4f3 0%, transparent 60%),
+        linear-gradient(180deg, #f8fafc, var(--bg));
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--ink);
+}
+
+.topbar {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    animation: liftIn 600ms ease forwards;
+}
+
+@keyframes liftIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+    border-radius: 16px;
+    border: 1px solid var(--stroke);
+}
+
+.table thead th {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--stroke);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+.chat-fab {
+    position: fixed !important;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1040;
+    border-radius: 999px;
+    padding: 10px 16px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
+}
+.chat-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    padding: 0 5px;
+    background: #dc2626;
+    color: #fff;
+    display: none;
+}
+.chat-popup {
+    position: fixed !important;
+    right: 22px;
+    bottom: 74px;
+    width: min(390px, calc(100vw - 24px));
+    height: 500px;
+    background: #ffffff;
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.22);
+    z-index: 1040;
+    display: none;
+    overflow: hidden;
+}
+.chat-popup.open { display: flex; flex-direction: column; }
+.chat-header { padding: 12px 14px; border-bottom: 1px solid var(--stroke); background: #f8fafc; }
+.chat-body { flex: 1; overflow: auto; padding: 12px; background: #fbfdff; }
+.chat-message { margin-bottom: 10px; max-width: 86%; border-radius: 10px; padding: 8px 10px; font-size: 13px; }
+.chat-message.self { margin-left: auto; background: #dbeafe; border: 1px solid #bfdbfe; }
+.chat-message.other { margin-right: auto; background: #eef2ff; border: 1px solid #e0e7ff; }
+.chat-meta { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+.chat-form { border-top: 1px solid var(--stroke); padding: 10px; background: #ffffff; }
+</style>
+</head>
+<body class="container py-4">
+
+<div class="topbar mb-4">
+    <div>
+        <h3 class="mb-1">User Dashboard</h3>
+        <div class="text-muted">Raise tickets and track SLA progress in one place.</div>
+    </div>
+    <a href="/logout" class="btn btn-outline-secondary">
+        <i class="bi bi-box-arrow-right me-1"></i> Logout
+    </a>
+</div>
+
+<form method="post" action="/raise_ticket" class="card p-3 shadow-sm mb-4">
+  <h6 class="mb-3">Raise a New Ticket</h6>
+  <input name="title" class="form-control mb-2" placeholder="Title" required>
+  <textarea name="description" class="form-control mb-2" placeholder="Description" required></textarea>
+  <input name="sla_hours" type="number" step="0.01" class="form-control mb-3" placeholder="SLA Hours" required>
+  <button class="btn btn-success">
+      <i class="bi bi-plus-circle me-1"></i> Raise Ticket
+  </button>
+</form>
+
+{% if pending_extensions %}
+<div class="card p-3 shadow-sm mb-4 border border-warning-subtle">
+  <h6 class="mb-3 text-warning-emphasis">SLA Extension Requests (Action Required)</h6>
+  <div class="small text-muted mb-2">Manager requested additional time. Accept to continue with extended timer.</div>
+  {% for t in pending_extensions %}
+  <form method="post" action="/extension_decision" class="row g-2 align-items-center border rounded p-2 mb-2">
+    <input type="hidden" name="ticket_id" value="{{ t.id }}">
+    <div class="col-md-3"><strong>#{{ t.id }} {{ t.title }}</strong></div>
+    <div class="col-md-3">Requested: +{{ t.extension_requested_minutes }} min</div>
+    <div class="col-md-4"><input class="form-control form-control-sm" name="note" placeholder="Reason/response (optional)"></div>
+    <div class="col-md-2 d-flex gap-2">
+      <button class="btn btn-success btn-sm" name="decision" value="ACCEPT">Accept</button>
+      <button class="btn btn-outline-danger btn-sm" name="decision" value="REJECT">Reject</button>
+    </div>
+  </form>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card p-3 shadow-sm">
+<h6 class="mb-3">My Tickets</h6>
+<table class="table table-bordered">
+<tr><th>Title</th><th>Status</th><th>SLA Status</th><th>Current Owner</th><th>Extension</th><th>Next Action</th></tr>
+{% for t in tickets %}
+<tr>
+  <td>{{ t.title }}</td>
+  <td>{{ t.status }}</td>
+  <td>{{ t.sla_status or "IN PROGRESS" }}</td>
+  <td>{{ t.owner_username or "-" }}</td>
+  <td>{{ t.extension_request_status or "NONE" }}{% if t.extension_requested_minutes %} (+{{ t.extension_requested_minutes }} min){% endif %}</td>
+  <td>{{ t.next_action_text or "-" }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<button id="chatFab" class="btn btn-primary chat-fab position-relative"><i class="bi bi-chat-dots me-1"></i> Chat<span id="chatBadge" class="chat-badge"></span></button>
+<div id="chatPopup" class="chat-popup">
+  <div class="chat-header d-flex justify-content-between align-items-center">
+    <div>
+      <div class="fw-semibold">Manager Chat</div>
+      <div class="small text-muted">Professional communication channel</div>
+    </div>
+    <button id="chatClose" class="btn btn-sm btn-outline-secondary">Close</button>
+  </div>
+  <div id="chatBody" class="chat-body"></div>
+  <form id="chatForm" class="chat-form">
+    <div class="row g-2">
+      <div class="col-4"><input id="chatTicketId" class="form-control form-control-sm" type="number" min="1" placeholder="Ticket ID"></div>
+      <div class="col-8"><input id="chatMessage" class="form-control form-control-sm" placeholder="Type message to manager" required></div>
+      <div class="col-12"><button class="btn btn-primary btn-sm w-100">Send Message</button></div>
+    </div>
+  </form>
+</div>
+
+<script>
+const currentUsername = {{ current_username | tojson }};
+const managerUsername = {{ manager_username | tojson }};
+let liveToken = {{ live_token | tojson }};
+const chatFab = document.getElementById("chatFab");
+const chatPopup = document.getElementById("chatPopup");
+const chatClose = document.getElementById("chatClose");
+const chatBody = document.getElementById("chatBody");
+const chatBadge = document.getElementById("chatBadge");
+const chatForm = document.getElementById("chatForm");
+const chatTicketId = document.getElementById("chatTicketId");
+const chatMessage = document.getElementById("chatMessage");
+let chatAutoOpened = false;
+
+function renderChat(messages){
+  chatBody.innerHTML = "";
+  if (!messages.length) {
+    chatBody.innerHTML = '<div class="text-muted small">No conversation yet.</div>';
+    return;
+  }
+  messages.forEach((m) => {
+    const mine = m.sender_username === currentUsername;
+    const box = document.createElement("div");
+    box.className = `chat-message ${mine ? "self" : "other"}`;
+    const meta = document.createElement("div");
+    meta.className = "chat-meta";
+    const ticketText = m.ticket_id ? ` | Ticket #${m.ticket_id}` : "";
+    meta.textContent = `${m.sender_username} - ${m.sent_time}${ticketText}`;
+    const text = document.createElement("div");
+    text.textContent = m.message_text;
+    box.appendChild(meta);
+    box.appendChild(text);
+    chatBody.appendChild(box);
+  });
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function updateUnreadBadge(messages){
+  const key = `chat_seen_${currentUsername}`;
+  const lastSeen = parseInt(localStorage.getItem(key) || "0", 10);
+  const unread = messages.filter((m) => m.receiver_username === currentUsername && Number(m.id) > lastSeen).length;
+  if (unread > 0) {
+    chatBadge.style.display = "inline-block";
+    chatBadge.textContent = unread > 99 ? "99+" : String(unread);
+    if (!chatPopup.classList.contains("open") && !chatAutoOpened) {
+      chatPopup.classList.add("open");
+      chatAutoOpened = true;
+      refreshChat().catch(() => {});
+    }
+  } else {
+    chatBadge.style.display = "none";
+    chatAutoOpened = false;
+  }
+}
+
+function markAllAsSeen(messages){
+  const key = `chat_seen_${currentUsername}`;
+  const maxId = messages.reduce((mx, m) => Math.max(mx, Number(m.id || 0)), 0);
+  if (maxId > 0) localStorage.setItem(key, String(maxId));
+  chatBadge.style.display = "none";
+}
+
+async function refreshChat(){
+  const res = await fetch(`/chat_messages?with_user=${encodeURIComponent(managerUsername)}&limit=120`);
+  if (!res.ok) return;
+  const data = await res.json();
+  renderChat(data);
+  if (chatPopup.classList.contains("open")) markAllAsSeen(data);
+}
+
+async function refreshUnread(){
+  const res = await fetch("/chat_messages?limit=120");
+  if (!res.ok) return;
+  const data = await res.json();
+  updateUnreadBadge(data);
+}
+
+chatFab.addEventListener("click", () => { chatPopup.classList.add("open"); refreshChat(); });
+chatClose.addEventListener("click", () => chatPopup.classList.remove("open"));
+
+chatForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const payload = {
+    receiver_username: managerUsername,
+    ticket_id: chatTicketId.value.trim(),
+    message_text: chatMessage.value.trim(),
+  };
+  if (!payload.message_text) return;
+  const res = await fetch("/send_message_api", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (res.ok) {
+    chatMessage.value = "";
+    await refreshChat();
+  }
+});
+
+setInterval(() => {
+  if (chatPopup.classList.contains("open")) refreshChat().catch(() => {});
+}, 4000);
+
+setInterval(() => {
+  refreshUnread().catch(() => {});
+}, 4000);
+refreshUnread().catch(() => {});
+
+setInterval(async () => {
+  try {
+    const res = await fetch("/live_state");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.token && data.token !== liveToken) {
+      window.location.reload();
+    }
+  } catch (_) {}
+}, 5000);
+
+setInterval(() => {
+    fetch("/sla_heartbeat", { method: "POST" }).catch(() => {});
+}, 60000);
+</script>
+</body>
+</html>
+
