@@ -176,17 +176,18 @@ This repository includes a `render.yaml` file for Render deployment.
 Required environment values:
 - `FLASK_SECRET_KEY`
 - `ALERT_DEFAULT_RECIPIENTS`
-- `SMTP_SENDER_EMAIL`
-- `SMTP_SENDER_APP_PASSWORD`
 
 The database path is configured through:
-- `DATABASE_PATH=/var/data/database.db`
+- `DATABASE_PATH=/tmp/database.db`
 
 Optional:
 - `SEED_DEMO_USERS=true`
 
 Note:
-- Render persistent disks require a paid web service plan
+- The included `render.yaml` is configured for Render's free web tier
+- Free Render services use an ephemeral filesystem, so SQLite data is reset whenever the service restarts or redeploys
+- If you need persistent data on Render, switch to PostgreSQL or upgrade to a paid instance with a persistent disk
+- Free Render services cannot send mail over SMTP ports such as `25`, `465`, or `587`; use an email API provider or a paid instance if alerts must be delivered
 
 ### Important
 - Do not deploy with demo secrets or personal email passwords inside source code
