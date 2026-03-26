@@ -848,7 +848,7 @@ function updateSLATimers(){
 
         const pct = remaining / total;
         let cls="time-green";
-        if(pct<=0.25) cls="time-yellow";
+        if(pct<=0.35) cls="time-yellow";
 
         const h=Math.floor(remaining/3600000);
         const m=Math.floor((remaining%3600000)/60000);

@@ -107,7 +107,8 @@ def ticket_action():
         "MANAGER_CUSTOMER_ASSURANCE",
         "MANAGER_SIGNOFF",
     }
-    if action_type in key_actions and not note:
+    note_required_actions = key_actions - {"MANAGER_SLA_EXTENSION"}
+    if action_type in note_required_actions and not note:
         return "Note is required for this action", 400
 
     conn = get_db_connection()
@@ -174,13 +175,14 @@ def ticket_action():
         if request_mins <= 0:
             conn.close()
             return "Extension is disabled for this ticket (SLA Extension is set to 0)", 400
+        reason = note or "Extension requested to ensure quality resolution and customer assurance."
         user_email = get_user_email(conn, ticket["raised_by"])
         recipients = [user_email] if user_email else get_alert_recipients(conn)
         send_email_alert(
             f"SLA Extension Request for Ticket {ticket_id}",
             (
                 f"Manager requested SLA extension of {request_mins} minutes for ticket {ticket_id} ({ticket['title']}).\n"
-                f"Reason: {note}\n"
+                f"Reason: {reason}\n"
                 "Please review and respond from your dashboard."
             ),
             recipients=recipients,
@@ -209,7 +211,7 @@ def ticket_action():
                 ticket_id,
             ),
         )
-        note = f"Requested +{request_mins} min extension (Configured SLA Extension). {note}"
+        note = f"Requested +{request_mins} min extension (Configured SLA Extension). {reason}"
     elif action_type == "MANAGER_PREVENTIVE_INTERVENTION":
         intervention_due = next_action_due or (datetime.now() + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
         conn.execute(

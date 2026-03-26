@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: digital-sla-dashboard
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn backend.app:app
+    disk:
+      name: sla-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_PATH
+        value: /var/data/database.db
+      - key: SEED_DEMO_USERS
+        value: "true"
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: FLASK_SECRET_KEY
+        sync: false
+      - key: ALERT_DEFAULT_RECIPIENTS
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_SENDER_EMAIL
+        sync: false
+      - key: SMTP_SENDER_APP_PASSWORD
+        sync: false

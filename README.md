@@ -161,6 +161,40 @@ http://127.0.0.1:5000
 
 ---
 
+## Public Deployment Notes
+
+This project can be deployed publicly as a Flask web app.
+
+### Recommended Hosting Pattern
+- Host the Flask app on a Python web service
+- Set environment variables for secrets and SMTP
+- Store the SQLite database on persistent disk storage
+
+### Render Deployment
+This repository includes a `render.yaml` file for Render deployment.
+
+Required environment values:
+- `FLASK_SECRET_KEY`
+- `ALERT_DEFAULT_RECIPIENTS`
+- `SMTP_SENDER_EMAIL`
+- `SMTP_SENDER_APP_PASSWORD`
+
+The database path is configured through:
+- `DATABASE_PATH=/var/data/database.db`
+
+Optional:
+- `SEED_DEMO_USERS=true`
+
+Note:
+- Render persistent disks require a paid web service plan
+
+### Important
+- Do not deploy with demo secrets or personal email passwords inside source code
+- SQLite is acceptable for a small academic/demo deployment, but PostgreSQL is better for long-term production use
+- If you redeploy without persistent disk storage, your data can be lost
+
+---
+
 ## Demo Login Credentials
 
 The following sample credentials are provided for demonstration and testing purposes.

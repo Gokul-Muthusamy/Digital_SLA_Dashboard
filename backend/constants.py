@@ -3,7 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
-DATABASE_PATH = BASE_DIR / "database.db"
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "database.db"))).resolve()
 TEMPLATE_DIR = PROJECT_ROOT / "frontend" / "templates"
 STATIC_DIR = PROJECT_ROOT / "frontend" / "static"
 
@@ -11,7 +11,7 @@ WARNING_ACK_MINUTES = 15
 BREACH_ACTION_MINUTES = 30
 DEFAULT_ALERT_RECIPIENTS = [
     email.strip()
-    for email in os.getenv("ALERT_DEFAULT_RECIPIENTS", "gokulnathanm.ec23@bitsathy.ac.in").split(",")
+    for email in os.getenv("ALERT_DEFAULT_RECIPIENTS", "").split(",")
     if email.strip()
 ]
 WARNING_THRESHOLD_PCT = 0.65

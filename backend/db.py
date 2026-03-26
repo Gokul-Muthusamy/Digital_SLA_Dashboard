@@ -1,3 +1,4 @@
+import os
 import sqlite3
 
 try:
@@ -7,6 +8,7 @@ except ImportError:
 
 
 def get_db_connection():
+    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -16,6 +18,28 @@ def ensure_column(conn, table_name, column_name, ddl):
     existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()}
     if column_name not in existing:
         conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {ddl}")
+
+
+def ensure_demo_users(conn):
+    if os.getenv("SEED_DEMO_USERS", "true").lower() != "true":
+        return
+
+    existing_users = conn.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
+    if existing_users:
+        return
+
+    demo_users = [
+        ("user1", "user123", "user", "user1@sla.local"),
+        ("support1", "support123", "support", "support1@sla.local"),
+        ("manager1", "manager123", "manager", "manager1@sla.local"),
+    ]
+    conn.executemany(
+        """
+        INSERT OR IGNORE INTO users (username, password, role, email)
+        VALUES (?, ?, ?, ?)
+        """,
+        demo_users,
+    )
 
 
 def ensure_schema():
@@ -143,6 +167,6 @@ def ensure_schema():
     for name, ddl in ticket_columns:
         ensure_column(conn, "tickets", name, ddl)
 
+    ensure_demo_users(conn)
     conn.commit()
     conn.close()
-
