@@ -58,7 +58,7 @@ def chat_messages():
         limit = 80
 
     conn = get_db_connection()
-    query = """
+    base_query = """
         SELECT c.*, t.title AS ticket_title
         FROM chat_messages c
         LEFT JOIN tickets t ON t.id = c.ticket_id
@@ -67,7 +67,7 @@ def chat_messages():
     params = [username, username]
 
     if with_user:
-        query += """
+        base_query += """
             AND (
                 (c.sender_username=? AND c.receiver_username=?)
                 OR
@@ -77,12 +77,18 @@ def chat_messages():
         params.extend([username, with_user, with_user, username])
 
     if ticket_id.isdigit():
-        query += " AND c.ticket_id=?"
+        base_query += " AND c.ticket_id=?"
         params.append(int(ticket_id))
 
-    query += " ORDER BY c.sent_time ASC, c.id ASC LIMIT ?"
-    params.append(limit)
-    rows = conn.execute(query, params).fetchall()
+    query = f"""
+        SELECT * FROM (
+            {base_query}
+            ORDER BY c.sent_time DESC, c.id DESC
+            LIMIT ?
+        ) recent_messages
+        ORDER BY sent_time ASC, id ASC
+    """
+    rows = conn.execute(query, params + [limit]).fetchall()
     conn.close()
 
     return jsonify([dict(row) for row in rows])
@@ -107,6 +113,10 @@ def send_message_api():
     conn = get_db_connection()
     if sender_role == "user":
         receiver = get_manager_username(conn)
+    elif sender_role == "manager" and not receiver and ticket_id:
+        t = conn.execute("SELECT raised_by FROM tickets WHERE id=?", (ticket_id,)).fetchone()
+        if t:
+            receiver = t["raised_by"]
 
     if not receiver:
         conn.close()
@@ -121,4 +131,3 @@ def send_message_api():
     conn.commit()
     conn.close()
     return jsonify({"ok": True})
-

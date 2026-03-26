@@ -156,7 +156,14 @@ body {
   <td>{{ t.status }}</td>
   <td>{{ t.sla_status or "IN PROGRESS" }}</td>
   <td>{{ t.owner_username or "-" }}</td>
-  <td>{{ t.extension_request_status or "NONE" }}{% if t.extension_requested_minutes %} (+{{ t.extension_requested_minutes }} min){% endif %}</td>
+  <td>
+    {% if t.extension_request_status == "AUTO_APPROVED" %}
+    AUTO APPROVED
+    {% else %}
+    {{ t.extension_request_status or "NONE" }}
+    {% endif %}
+    {% if t.extension_requested_minutes %} (+{{ t.extension_requested_minutes }} min){% endif %}
+  </td>
   <td>{{ t.next_action_text or "-" }}</td>
 </tr>
 {% endfor %}

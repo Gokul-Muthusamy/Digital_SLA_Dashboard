@@ -167,7 +167,7 @@ This project can be deployed publicly as a Flask web app.
 
 ### Recommended Hosting Pattern
 - Host the Flask app on a Python web service
-- Set environment variables for secrets and SMTP
+- Set environment variables for secrets and alerts
 - Store the SQLite database on persistent disk storage
 
 ### Render Deployment
@@ -182,12 +182,15 @@ The database path is configured through:
 
 Optional:
 - `SEED_DEMO_USERS=true`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_IDS`
 
 Note:
 - The included `render.yaml` is configured for Render's free web tier
 - Free Render services use an ephemeral filesystem, so SQLite data is reset whenever the service restarts or redeploys
 - If you need persistent data on Render, switch to PostgreSQL or upgrade to a paid instance with a persistent disk
-- Free Render services cannot send mail over SMTP ports such as `25`, `465`, or `587`; use an email API provider or a paid instance if alerts must be delivered
+- Free Render services cannot send mail over SMTP ports such as `25`, `465`, or `587`
+- Telegram bot alerts work on free Render by setting `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_IDS`
 
 ### Important
 - Do not deploy with demo secrets or personal email passwords inside source code

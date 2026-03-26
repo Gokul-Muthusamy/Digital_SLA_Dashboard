@@ -342,7 +342,10 @@ body {
     </td>
     <td>
         {% if t.status == "OPEN" %}
-        <span class="time-box" data-created="{{ t.created_time }}" data-sla-hours="{{ t.sla_hours }}"></span>
+        <span
+            class="time-box"
+            data-time-left-hours="{{ t.time_left if t.time_left is not none else 0 }}"
+        ></span>
         {% else %}
         <span class="text-muted">-</span>
         {% endif %}
@@ -355,6 +358,8 @@ body {
         <div class="small mt-1"><span class="badge bg-warning text-dark">Extension Pending User Approval (+{{ t.extension_requested_minutes }} min)</span></div>
         {% elif t.extension_request_status == "ACCEPTED" %}
         <div class="small mt-1"><span class="badge bg-info text-dark">Extension Accepted (+{{ t.extension_requested_minutes }} min)</span></div>
+        {% elif t.extension_request_status == "AUTO_APPROVED" %}
+        <div class="small mt-1"><span class="badge bg-success">Extension Auto-Approved (+{{ t.extension_requested_minutes }} min)</span></div>
         {% elif t.extension_request_status == "REJECTED" %}
         <div class="small mt-1"><span class="badge bg-secondary">Extension Rejected by User</span></div>
         {% endif %}
@@ -453,6 +458,7 @@ body {
             <td>
                 {% if t.extension_request_status == "PENDING" %}<span class="badge bg-warning text-dark">User Approval Pending (+{{ t.extension_requested_minutes }} min)</span>
                 {% elif t.extension_request_status == "ACCEPTED" %}<span class="badge bg-info text-dark">Extension Accepted (+{{ t.extension_requested_minutes }} min)</span>
+                {% elif t.extension_request_status == "AUTO_APPROVED" %}<span class="badge bg-success">Extension Auto-Approved (+{{ t.extension_requested_minutes }} min)</span>
                 {% else %}<span class="badge bg-danger">Manager Priority</span>{% endif %}
             </td>
             <td>{{ t.next_action_text or "-" }}</td>
@@ -832,13 +838,14 @@ chatForm.addEventListener("submit", async (e) => {
     }
 });
 
+const timerStartedAt = Date.now();
+
 function updateSLATimers(){
-    const now = new Date();
+    const elapsedMs = Date.now() - timerStartedAt;
     document.querySelectorAll(".time-box").forEach(box=>{
-        const created = new Date(box.dataset.created.replace(" ","T"));
-        const slaHrs = parseFloat(box.dataset.slaHours || "0");
-        const total = slaHrs * 3600000;
-        const remaining = total - (now - created);
+        const initialHours = parseFloat(box.dataset.timeLeftHours || "0");
+        const initialRemaining = Math.max(0, initialHours * 3600000);
+        const remaining = initialRemaining - elapsedMs;
 
         if(remaining <= 0){
             box.textContent="00:00:00";
@@ -846,7 +853,7 @@ function updateSLATimers(){
             return;
         }
 
-        const pct = remaining / total;
+        const pct = initialRemaining > 0 ? (remaining / initialRemaining) : 0;
         let cls="time-green";
         if(pct<=0.35) cls="time-yellow";
 

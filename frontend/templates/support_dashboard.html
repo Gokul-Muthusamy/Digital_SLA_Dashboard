@@ -91,6 +91,7 @@ body {
   <td>
     {% if t.extension_request_status == "PENDING" %}<span class="badge bg-warning text-dark">Extension Pending User Approval</span>
     {% elif t.extension_request_status == "ACCEPTED" %}<span class="badge bg-info text-dark">Extension Accepted</span>
+    {% elif t.extension_request_status == "AUTO_APPROVED" %}<span class="badge bg-success">Extension Auto-Approved</span>
     {% else %}<span class="badge bg-danger">Manager Priority</span>{% endif %}
   </td>
   <td>{{ t.next_action_text or "-" }}</td>
@@ -141,6 +142,8 @@ body {
     <div class="small mt-1"><span class="badge bg-warning text-dark">Extension Pending (+{{ t.extension_requested_minutes }} min)</span></div>
     {% elif t.extension_request_status == "ACCEPTED" %}
     <div class="small mt-1"><span class="badge bg-info text-dark">Extension Accepted (+{{ t.extension_requested_minutes }} min)</span></div>
+    {% elif t.extension_request_status == "AUTO_APPROVED" %}
+    <div class="small mt-1"><span class="badge bg-success">Extension Auto-Approved (+{{ t.extension_requested_minutes }} min)</span></div>
     {% endif %}
 </td>
 <td style="min-width:360px">
