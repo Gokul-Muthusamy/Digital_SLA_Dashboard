@@ -110,12 +110,12 @@ To design and develop a web-based system that enables real-time SLA monitoring, 
 ## System Architecture
 
 User / Support / Manager  
-→ Web User Interface  
-→ Flask Backend  
-→ SQLite Database  
-→ SLA Processing Logic  
-→ Dashboard Visualization (Chart.js)  
-→ Email Notification System 
+-> Web User Interface  
+-> Flask Backend  
+-> SQLite Database  
+-> SLA Processing Logic  
+-> Dashboard Visualization (Chart.js)  
+-> Email Notification System 
 
 <img width="1277" height="851" alt="image" src="https://github.com/user-attachments/assets/a8ba599d-6a94-4e19-a1e2-c54a9061233e" />
 
@@ -123,26 +123,24 @@ User / Support / Manager
 
 ## Project Structure
 
-📁 Digital_SLA_Dashboard  
-├── 📁 static/  
-│   └── (CSS, JS, assets)  
-│  
-├── 📁 templates/  
-│   ├── 📄 login.html  
-│   ├── 📄 user_dashboard.html  
-│   ├── 📄 support_dashboard.html  
-│   └── 📄 manager_dashboard.html  
-│  
-├── 📄 app.py  
-├── 📄 init_db.py  
-├── 📄 insert_users.py  
-├── 📄 reset_database.py  
-├── 📄 database.db  
-├── 📄 README.md  
-└── 📄 .gitignore
+Digital_SLA_Compliance_Dashboard/  
+|-- backend/  
+|   |-- app.py  
+|   |-- init_db.py  
+|   |-- insert_users.py  
+|   |-- reset_database.py  
+|   |-- database.db  
+|   |-- routes/  
+|-- frontend/  
+|   |-- static/  
+|   |-- templates/  
+|-- requirements.txt  
+|-- .env.example  
+|-- README.md  
+|-- .gitignore
 
 
-Note: The database file (database.db) is generated automatically during execution and is ignored in version control.
+Note: The database file (`backend/database.db`) is generated automatically during execution and is ignored in version control.
 
 ---
 
@@ -151,11 +149,11 @@ Note: The database file (database.db) is generated automatically during executio
 ### Step 1: Clone the Repository
 git clone https://github.com/Gokul-Muthusamy/Digital_SLA_dashboard.git
 ### Step 2: Navigate to Project Directory 
-cd Digital_SLA_dashboard
+cd Digital_SLA_Compliance_Dashboard
 ### Step 3: Install Required Dependencies
-pip install flask
+pip install -r requirements.txt
 ### Step 4: Run the Application
-python app.py
+python backend/app.py
 ### Step 5: Access the Application
 Open a web browser and navigate to:
 
@@ -184,7 +182,8 @@ The following sample credentials are provided for demonstration and testing purp
 ### Database Reset (For Testing)
 To clear all ticket and alert data:
 
-python reset_database.py
+python backend/reset_database.py
+
 
 
 
